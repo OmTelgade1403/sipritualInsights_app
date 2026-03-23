@@ -1,0 +1,26 @@
+{
+  "firestore": {
+    "rules": "firestore.rules"
+  },
+  "flutter": {
+    "platforms": {
+      "android": {
+        "default": {
+          "projectId": "spiritual-insights-app",
+          "appId": "1:746255923146:android:7da10e1a56a080b7be8133",
+          "fileOutput": "android/app/google-services.json"
+        }
+      },
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "spiritual-insights-app",
+          "configurations": {
+            "android": "1:746255923146:android:7da10e1a56a080b7be8133",
+            "ios": "1:746255923146:ios:c61e4d48cba065f9be8133",
+            "web": "1:746255923146:web:ad4f303820449cefbe8133"
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "746255923146",
+    "project_id": "spiritual-insights-app",
+    "storage_bucket": "spiritual-insights-app.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:746255923146:android:ba5163d8c74c7e96be8133",
+        "android_client_info": {
+          "package_name": "com.example.spiritual_insights"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCSiZ2t1vVj3SgnAJiquyI4L7P7Jcvj-ew"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:746255923146:android:7da10e1a56a080b7be8133",
+        "android_client_info": {
+          "package_name": "com.spiritualinsights.spiritual_insights"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCSiZ2t1vVj3SgnAJiquyI4L7P7Jcvj-ew"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
