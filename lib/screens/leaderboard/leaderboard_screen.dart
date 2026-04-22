@@ -213,23 +213,23 @@ class _LeaderboardTile extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
         color: isCurrentUser 
-          ? AppColors.primary.withOpacity(0.3)
+          ? AppColors.primary.withValues(alpha: 0.3)
           : isTopThree 
-            ? rankColors[rank - 1].withOpacity(0.1) 
+            ? rankColors[rank - 1].withValues(alpha: 0.1) 
             : AppColors.surfaceDark,
         borderRadius: BorderRadius.circular(24),
         border: Border.all(
           color: isCurrentUser
               ? AppColors.primary 
               : isTopThree 
-                ? rankColors[rank - 1].withOpacity(0.4) 
-                : Colors.white.withOpacity(0.05),
+                ? rankColors[rank - 1].withValues(alpha: 0.4) 
+                : Colors.white.withValues(alpha: 0.05),
           width: isCurrentUser ? 2 : (isTopThree ? 2 : 1),
         ),
         boxShadow: [
           if (isTopThree)
             BoxShadow(
-              color: rankColors[rank - 1].withOpacity(0.1),
+              color: rankColors[rank - 1].withValues(alpha: 0.1),
               blurRadius: 15,
               offset: const Offset(0, 8),
             ),
@@ -242,12 +242,12 @@ class _LeaderboardTile extends StatelessWidget {
           height: 44,
           alignment: Alignment.center,
           decoration: BoxDecoration(
-            color: isTopThree ? rankColors[rank - 1] : Colors.white.withOpacity(0.1),
+            color: isTopThree ? rankColors[rank - 1] : Colors.white.withValues(alpha: 0.1),
             shape: BoxShape.circle,
             boxShadow: [
               if (isTopThree)
                 BoxShadow(
-                  color: rankColors[rank - 1].withOpacity(0.4),
+                  color: rankColors[rank - 1].withValues(alpha: 0.4),
                   blurRadius: 8,
                 ),
             ],
@@ -277,7 +277,7 @@ class _LeaderboardTile extends StatelessWidget {
               borderRadius: BorderRadius.circular(4),
               child: LinearProgressIndicator(
                 value: entry.progress,
-                backgroundColor: Colors.white.withOpacity(0.05),
+                backgroundColor: Colors.white.withValues(alpha: 0.05),
                 valueColor: AlwaysStoppedAnimation(
                   isTopThree ? rankColors[rank - 1] : AppColors.secondary,
                 ),
@@ -344,10 +344,10 @@ class _RankGraph extends StatelessWidget {
           end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: Colors.white.withOpacity(0.05)),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.3),
+            color: Colors.black.withValues(alpha: 0.3),
             blurRadius: 15,
             offset: const Offset(0, 8),
           ),
@@ -405,8 +405,8 @@ class _RankGraph extends StatelessWidget {
                       show: true,
                       gradient: LinearGradient(
                         colors: [
-                          AppColors.secondary.withOpacity(0.2),
-                          AppColors.gold.withOpacity(0.01),
+                          AppColors.secondary.withValues(alpha: 0.2),
+                          AppColors.gold.withValues(alpha: 0.01),
                         ],
                         begin: Alignment.topCenter,
                         end: Alignment.bottomCenter,

@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:just_audio/just_audio.dart';
 import '../models/scheduled_audio.dart';
@@ -47,7 +48,7 @@ class AudioSchedulerService extends StateNotifier<List<ScheduledAudio>> {
       await _audioPlayer.setUrl(url);
       await _audioPlayer.play();
     } catch (e) {
-      print('Scheduler Audio Error: $e');
+      debugPrint('Scheduler Audio Error: $e');
     }
   }
 

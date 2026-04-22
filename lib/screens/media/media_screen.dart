@@ -22,34 +22,30 @@ class _MediaScreenState extends ConsumerState<MediaScreen> {
   YoutubePlayerController? _ytController;
   String? _currentlyPlayingTitle;
   bool _isAudioPlaying = false;
+  Duration? _sleepTimerDuration;
+  DateTime? _sleepTimerEndsAt;
+  bool _isSleepTimerActive = false;
 
   final List<Map<String, String>> _audioItems = [
     {
+      'title': 'Test Connection (Stable)',
+      'artist': 'System Test',
+      'duration': '0:30',
+      'url': 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3',
+      'image': 'https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?w=500&auto=format'
+    },
+    {
       'title': 'Hanuman Chalisa',
-      'artist': 'Gulshan Kumar',
+      'artist': 'Devotional',
       'duration': '9:40',
-      'url': 'https://archive.org/download/HanumanChalisa_201611/Hanuman%20Chalisa.mp3',
+      'url': 'https://archive.org/download/hanuman-chalisa_202106/Hanuman%20Chalisa.mp3',
       'image': 'https://images.unsplash.com/photo-1605722243979-fe0be8158232?w=500&auto=format'
     },
     {
-      'title': 'Deep Meditation',
-      'artist': 'Spiritual Mind',
-      'duration': '15:00',
-      'url': 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3',
-      'image': 'https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=500&auto=format'
-    },
-    {
-      'title': 'Zen Flute',
-      'artist': 'Peaceful Soul',
-      'duration': '20:00',
-      'url': 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3',
-      'image': 'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=500&auto=format'
-    },
-    {
-      'title': 'Morning Mantra',
-      'artist': 'Vedic Chants',
-      'duration': '08:45',
-      'url': 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3',
+      'title': 'Gayatri Mantra',
+      'artist': 'Sacred Chants',
+      'duration': '10:00',
+      'url': 'https://www.chosic.com/wp-content/uploads/2021/04/Gayatri-Mantra.mp3',
       'image': 'https://images.unsplash.com/photo-1528715471579-d1bcf0ba5e83?w=500&auto=format'
     },
   ];
@@ -57,7 +53,7 @@ class _MediaScreenState extends ConsumerState<MediaScreen> {
   final List<Map<String, String>> _videoItems = [
     {'title': 'Hanuman Chalisa - T-Series', 'artist': 'Gulshan Kumar', 'id': 'AETFvQonfV8'},
     {'title': 'Shiva Tandava Stotram', 'artist': 'Sacred Chants', 'id': 'mG71hSrx4hU'},
-    {'title': 'Sadhguru on Meditation', 'artist': 'Sadhguru', 'id': 'Tf09kNoK0Kk'},
+    {'title': 'Sadhguru: Power of Mantras', 'artist': 'Sadhguru', 'id': 'Tf09kNoK0Kk'},
   ];
 
   @override
@@ -72,6 +68,15 @@ class _MediaScreenState extends ConsumerState<MediaScreen> {
         setState(() {
           _isAudioPlaying = state.playing;
         });
+      }
+    });
+
+    // Handle audio errors globally
+    _audioPlayer.playbackEventStream.listen((event) {}, onError: (Object e, StackTrace st) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Playback error: $e'), backgroundColor: Colors.redAccent),
+        );
       }
     });
   }
@@ -96,12 +101,14 @@ class _MediaScreenState extends ConsumerState<MediaScreen> {
       lastDate: DateTime.now().add(const Duration(days: 365)),
     );
     if (date == null) return;
+    if (!mounted) return;
 
     final time = await showTimePicker(
       context: context,
       initialTime: TimeOfDay.now(),
     );
     if (time == null) return;
+    if (!mounted) return;
 
     final scheduledTime = DateTime(date.year, date.month, date.day, time.hour, time.minute);
     
@@ -132,18 +139,118 @@ class _MediaScreenState extends ConsumerState<MediaScreen> {
 
   Future<void> _playAudio(String url, String title) async {
     try {
-      if (_currentlyPlayingTitle == title && _isAudioPlaying) {
-        await _audioPlayer.pause();
-      } else if (_currentlyPlayingTitle == title && !_isAudioPlaying) {
-        await _audioPlayer.play();
+      if (_currentlyPlayingTitle == title) {
+        if (_isAudioPlaying) {
+          await _audioPlayer.pause();
+        } else {
+          await _audioPlayer.play();
+        }
+        return;
+      }
+
+      // Show loading
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Streaming $title...'), 
+          duration: const Duration(seconds: 1),
+          backgroundColor: AppColors.gold.withValues(alpha: 0.8),
+        ),
+      );
+
+      _currentlyPlayingTitle = title;
+      if (url.startsWith('asset:')) {
+        await _audioPlayer.setAsset(url.replaceFirst('asset:', ''));
       } else {
         await _audioPlayer.setUrl(url);
-        _currentlyPlayingTitle = title;
-        await _audioPlayer.play();
       }
+      await _audioPlayer.play();
     } catch (e) {
       debugPrint('Error playing audio: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Could not play $title. Please check your connection.')),
+        );
+      }
     }
+  }
+
+  void _showSleepTimerPicker() async {
+    final List<int> minutes = [5, 10, 15, 30, 45, 60];
+    
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: AppColors.primary,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+      builder: (ctx) => Container(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Stop Audio After...', style: GoogleFonts.outfit(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white)),
+            const SizedBox(height: 20),
+            Wrap(
+              spacing: 12,
+              runSpacing: 12,
+              children: minutes.map((m) => GestureDetector(
+                onTap: () {
+                  setState(() {
+                    _sleepTimerDuration = Duration(minutes: m);
+                    _sleepTimerEndsAt = DateTime.now().add(_sleepTimerDuration!);
+                    _isSleepTimerActive = true;
+                  });
+                  Navigator.pop(ctx);
+                  _startSleepTimer();
+                },
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.05),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: AppColors.gold.withValues(alpha: 0.3)),
+                  ),
+                  child: Text('$m mins', style: GoogleFonts.outfit(color: Colors.white)),
+                ),
+              )).toList(),
+            ),
+            const SizedBox(height: 20),
+            if (_isSleepTimerActive)
+              ListTile(
+                leading: const Icon(Icons.timer_off_rounded, color: Colors.redAccent),
+                title: const Text('Cancel Timer', style: TextStyle(color: Colors.white)),
+                onTap: () {
+                  setState(() {
+                    _isSleepTimerActive = false;
+                    _sleepTimerEndsAt = null;
+                  });
+                  Navigator.pop(ctx);
+                },
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _startSleepTimer() {
+    Future.delayed(const Duration(seconds: 1), () {
+      if (!mounted || !_isSleepTimerActive || _sleepTimerEndsAt == null) return;
+      
+      if (DateTime.now().isAfter(_sleepTimerEndsAt!)) {
+        _audioPlayer.pause();
+        setState(() {
+          _isSleepTimerActive = false;
+          _sleepTimerEndsAt = null;
+        });
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Sleep timer active: Audio stopped.')),
+          );
+        }
+      } else {
+        _startSleepTimer();
+      }
+    });
   }
 
   void _playVideo(String videoId) {
@@ -202,10 +309,20 @@ class _MediaScreenState extends ConsumerState<MediaScreen> {
               indicatorWeight: 3,
               dividerColor: Colors.white10,
               tabs: const [
-                Tab(text: 'Audio Chants'),
+              Tab(text: 'Audio Chants'),
                 Tab(text: 'Divine Videos'),
               ],
             ),
+            actions: [
+              IconButton(
+                icon: Icon(
+                  _isSleepTimerActive ? Icons.timer_rounded : Icons.timer_outlined,
+                  color: _isSleepTimerActive ? AppColors.gold : Colors.white70,
+                ),
+                onPressed: _showSleepTimerPicker,
+                tooltip: 'Sleep Timer',
+              ),
+            ],
           ),
           body: TabBarView(
             children: [
@@ -231,9 +348,9 @@ class _MediaScreenState extends ConsumerState<MediaScreen> {
           ...scheduledAudios.map((sa) => Container(
                 margin: const EdgeInsets.only(bottom: 12),
                 decoration: BoxDecoration(
-                  color: AppColors.primary.withOpacity(0.1),
+                  color: AppColors.primary.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: AppColors.gold.withOpacity(0.3)),
+                  border: Border.all(color: AppColors.gold.withValues(alpha: 0.3)),
                 ),
                 child: ListTile(
                   leading: const Icon(Icons.schedule, color: AppColors.gold),
@@ -254,10 +371,10 @@ class _MediaScreenState extends ConsumerState<MediaScreen> {
           return Container(
             margin: const EdgeInsets.only(bottom: 16),
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.03),
+              color: Colors.white.withValues(alpha: 0.03),
               borderRadius: BorderRadius.circular(20),
               border: Border.all(
-                color: isPlaying ? AppColors.gold.withOpacity(0.3) : Colors.white10,
+                color: isPlaying ? AppColors.gold.withValues(alpha: 0.3) : Colors.white10,
                 width: 1,
               ),
             ),
@@ -353,7 +470,7 @@ class _MediaScreenState extends ConsumerState<MediaScreen> {
               return Container(
                 margin: const EdgeInsets.only(bottom: 12),
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.05),
+                  color: Colors.white.withValues(alpha: 0.05),
                   borderRadius: BorderRadius.circular(16),
                 ),
                 child: ListTile(
@@ -382,7 +499,7 @@ class _MediaScreenState extends ConsumerState<MediaScreen> {
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.4),
+            color: Colors.black.withValues(alpha: 0.4),
             blurRadius: 15,
             offset: const Offset(0, -5),
           ),

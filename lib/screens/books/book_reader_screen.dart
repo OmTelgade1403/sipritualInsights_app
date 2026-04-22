@@ -93,8 +93,8 @@ class _BookReaderScreenState extends ConsumerState<BookReaderScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Icon(Icons.auto_awesome, size: 24, color: AppColors.gold.withOpacity(0.5)),
-                      Icon(Icons.auto_awesome, size: 24, color: AppColors.gold.withOpacity(0.5)),
+                      Icon(Icons.auto_awesome, size: 24, color: AppColors.gold.withValues(alpha: 0.5)),
+                      Icon(Icons.auto_awesome, size: 24, color: AppColors.gold.withValues(alpha: 0.5)),
                     ],
                   ),
                   const SizedBox(height: 16),
@@ -145,7 +145,7 @@ class _BookReaderScreenState extends ConsumerState<BookReaderScreen> {
                   ),
                   const SizedBox(height: 40),
                    Center(
-                    child: Icon(Icons.park_rounded, size: 32, color: AppColors.gold.withOpacity(0.3)),
+                    child: Icon(Icons.park_rounded, size: 32, color: AppColors.gold.withValues(alpha: 0.3)),
                   ),
                   const SizedBox(height: 100),
                 ],

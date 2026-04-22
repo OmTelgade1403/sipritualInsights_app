@@ -21,6 +21,11 @@ import '../screens/books/book_reader_screen.dart';
 import '../screens/explore/story_reader_screen.dart';
 import '../screens/explore/game_demo_screen.dart';
 import '../screens/ai/ai_chat_screen.dart';
+import '../screens/meditation/vipassana_screen.dart';
+import '../screens/explore/animated_stories_screen.dart';
+import '../screens/explore/video_demo_screen.dart';
+import '../screens/notifications/notifications_screen.dart';
+import '../screens/explore/kids_game_screen.dart';
 
 final rootNavigatorKey = GlobalKey<NavigatorState>();
 final shellNavigatorKey = GlobalKey<NavigatorState>();
@@ -130,6 +135,26 @@ final appRouter = GoRouter(
     GoRoute(
       path: '/ai-chat',
       builder: (context, state) => const AIChatScreen(),
+    ),
+    GoRoute(
+      path: '/vipassana',
+      builder: (context, state) => const VipassanaScreen(),
+    ),
+    GoRoute(
+      path: '/animated-stories',
+      builder: (context, state) => const AnimatedStoriesScreen(),
+    ),
+    GoRoute(
+      path: '/video-demo',
+      builder: (context, state) => const VideoDemoScreen(),
+    ),
+    GoRoute(
+      path: '/notifications',
+      builder: (context, state) => const NotificationsScreen(),
+    ),
+    GoRoute(
+      path: '/kids-game',
+      builder: (context, state) => const KidsGameScreen(),
     ),
   ],
 );

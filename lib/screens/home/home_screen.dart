@@ -6,6 +6,7 @@ import '../../config/theme.dart';
 import '../../config/constants.dart';
 import '../../providers/app_providers.dart';
 import '../../widgets/glass_card.dart';
+import '../../models/user_model.dart';
 
 /// Home dashboard with daily insight, tasks, stats, and quick actions.
 class HomeScreen extends ConsumerWidget {
@@ -66,19 +67,39 @@ class HomeScreen extends ConsumerWidget {
                           ),
                         ],
                       ),
-                      GestureDetector(
-                        onTap: () => context.push('/settings'),
-                        child: Container(
-                          padding: const EdgeInsets.all(12),
-                          decoration: BoxDecoration(
-                            color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
-                            borderRadius: BorderRadius.circular(16),
+                      Row(
+                        children: [
+                          GestureDetector(
+                            onTap: () => context.push('/notifications'),
+                            child: Container(
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: AppColors.accent.withValues(alpha: 0.1),
+                                borderRadius: BorderRadius.circular(16),
+                              ),
+                              child: Icon(
+                                Icons.notifications_active_rounded,
+                                color: AppColors.accent,
+                                size: 20,
+                              ),
+                            ),
                           ),
-                          child: Icon(
-                            Icons.settings_rounded,
-                            color: Theme.of(context).colorScheme.primary,
+                          const SizedBox(width: 12),
+                          GestureDetector(
+                            onTap: () => context.push('/settings'),
+                            child: Container(
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
+                                borderRadius: BorderRadius.circular(16),
+                              ),
+                              child: Icon(
+                                Icons.settings_rounded,
+                                color: Theme.of(context).colorScheme.primary,
+                              ),
+                            ),
                           ),
-                        ),
+                        ],
                       ),
                     ],
                   ),
@@ -96,7 +117,7 @@ class HomeScreen extends ConsumerWidget {
                       ),
                       boxShadow: [
                         BoxShadow(
-                          color: AppColors.primary.withOpacity(0.4),
+                          color: AppColors.primary.withValues(alpha: 0.4),
                           blurRadius: 20,
                           offset: const Offset(0, 10),
                         ),
@@ -110,7 +131,7 @@ class HomeScreen extends ConsumerWidget {
                           child: Icon(
                             Icons.auto_awesome,
                             size: 150,
-                            color: Colors.white.withOpacity(0.05),
+                            color: Colors.white.withValues(alpha: 0.05),
                           ),
                         ),
                         Padding(
@@ -121,9 +142,9 @@ class HomeScreen extends ConsumerWidget {
                               Container(
                                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                                 decoration: BoxDecoration(
-                                  color: AppColors.gold.withOpacity(0.2),
+                                  color: AppColors.gold.withValues(alpha: 0.2),
                                   borderRadius: BorderRadius.circular(100),
-                                  border: Border.all(color: AppColors.gold.withOpacity(0.3)),
+                                  border: Border.all(color: AppColors.gold.withValues(alpha: 0.3)),
                                 ),
                                 child: Text(
                                   'DAILY INSIGHT',
@@ -152,7 +173,7 @@ class HomeScreen extends ConsumerWidget {
                                   Container(
                                     height: 1,
                                     width: 30,
-                                    color: AppColors.gold.withOpacity(0.5),
+                                    color: AppColors.gold.withValues(alpha: 0.5),
                                   ),
                                   const SizedBox(width: 8),
                                   Text(
@@ -259,7 +280,7 @@ class HomeScreen extends ConsumerWidget {
                     ),
                   ),
                   const SizedBox(height: 16),
-                  _CustomChallengesSection(user: user),
+                  if (user != null) _CustomChallengesSection(user: user),
                   const SizedBox(height: 40),
                 ],
               ),
@@ -302,7 +323,7 @@ class _StatCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(24),
           boxShadow: [
             BoxShadow(
-              color: (gradient as LinearGradient).colors.first.withOpacity(0.3),
+              color: (gradient as LinearGradient).colors.first.withValues(alpha: 0.3),
               blurRadius: 12,
               offset: const Offset(0, 6),
             ),
@@ -313,7 +334,7 @@ class _StatCard extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.2),
+                color: Colors.white.withValues(alpha: 0.2),
                 shape: BoxShape.circle,
               ),
               child: Icon(icon, color: Colors.white, size: 24),
@@ -411,7 +432,7 @@ class _TaskCard extends StatelessWidget {
 
 
 class _CustomChallengesSection extends ConsumerStatefulWidget {
-  final user;
+  final UserModel user;
   const _CustomChallengesSection({required this.user});
 
   @override
@@ -472,9 +493,9 @@ class _CustomChallengesSectionState extends ConsumerState<_CustomChallengesSecti
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
           decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.surfaceContainerHighest.withOpacity(0.3),
+            color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: Theme.of(context).colorScheme.outline.withOpacity(0.2)),
+            border: Border.all(color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.2)),
           ),
           child: Row(
             children: [
@@ -510,7 +531,7 @@ class _CustomChallengesSectionState extends ConsumerState<_CustomChallengesSecti
                 decoration: BoxDecoration(
                   color: Theme.of(context).cardTheme.color,
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Theme.of(context).colorScheme.outline.withOpacity(0.1)),
+                  border: Border.all(color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.1)),
                 ),
                 child: ListTile(
                   leading: Icon(Icons.stars_rounded, color: AppColors.gold, size: 20),
@@ -528,12 +549,12 @@ class _CustomChallengesSectionState extends ConsumerState<_CustomChallengesSecti
           Center(
             child: Column(
               children: [
-                Icon(Icons.format_list_bulleted_add, size: 48, color: Colors.grey.withOpacity(0.3)),
+                Icon(Icons.format_list_bulleted_add, size: 48, color: Colors.grey.withValues(alpha: 0.3)),
                 const SizedBox(height: 8),
                 Text(
                   'No custom challenges yet.\nAdd one above to stay motivated!',
                   textAlign: TextAlign.center,
-                  style: TextStyle(color: Colors.grey.withOpacity(0.8), fontSize: 13),
+                  style: TextStyle(color: Colors.grey.withValues(alpha: 0.8), fontSize: 13),
                 ),
               ],
             ),

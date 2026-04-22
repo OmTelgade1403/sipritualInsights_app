@@ -25,6 +25,7 @@ class _JapCounterScreenState extends ConsumerState<JapCounterScreen>
   late AnimationController _pulseController;
   late Animation<double> _pulseAnimation;
   bool _isEditing = false;
+  int _dailyTotal = 0;
 
   @override
   void initState() {
@@ -38,12 +39,25 @@ class _JapCounterScreenState extends ConsumerState<JapCounterScreen>
     );
     
     // Initialize count from user model if available
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
       final user = ref.read(currentUserProvider).value;
-      if (user != null && user.japCount > 0) {
+      if (user != null) {
+        if (user.japCount > 0) {
+          setState(() {
+            _count = user.japCount % _goal; // Show current round progress
+            _countController.text = _count.toString();
+          });
+        }
+        
+        // Fetch daily total
+        final activities = await ref.read(firestoreServiceProvider).getActivitiesForDate(user.uid, DateTime.now());
+        final japActivities = activities.where((a) => a.type == 'jap').toList();
+        int total = 0;
+        for (var a in japActivities) {
+          total += a.count ?? 0;
+        }
         setState(() {
-          _count = user.japCount;
-          _countController.text = _count.toString();
+          _dailyTotal = total;
         });
       }
     });
@@ -138,6 +152,33 @@ class _JapCounterScreenState extends ConsumerState<JapCounterScreen>
     if (mounted) context.pop();
   }
 
+  void _showAlarmPicker() async {
+    final TimeOfDay? picked = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay.now(),
+    );
+    if (picked != null) {
+      final now = DateTime.now();
+      var scheduledTime = DateTime(now.year, now.month, now.day, picked.hour, picked.minute);
+      if (scheduledTime.isBefore(now)) {
+        scheduledTime = scheduledTime.add(const Duration(days: 1));
+      }
+
+      await ref.read(alarmServiceProvider).scheduleAlarm(
+        id: 100, // Jap alarm ID
+        title: 'Time for Jap! 🙏',
+        body: 'Your daily spiritual practice is waiting for you.',
+        scheduledTime: scheduledTime,
+      );
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Jap alarm set for ${picked.format(context)}')),
+        );
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final progress = (_count / _goal).clamp(0.0, 1.0);
@@ -175,11 +216,71 @@ class _JapCounterScreenState extends ConsumerState<JapCounterScreen>
                     fontWeight: FontWeight.bold,
                     color: AppColors.secondary,
                   ),
-                  decoration: InputDecoration(
-                    hintText: 'Enter Mantra...',
-                    border: _isEditing ? null : InputBorder.none,
-                    enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: AppColors.secondary.withOpacity(0.3))),
+                    decoration: InputDecoration(
+                      hintText: 'Enter Mantra...',
+                      border: _isEditing ? null : InputBorder.none,
+                      enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: AppColors.secondary.withValues(alpha: 0.3))),
+                    ),
                   ),
+                ),
+
+                const SizedBox(height: 16),
+
+                // Daily Total / Overall Progress
+                Consumer(
+                  builder: (context, ref, child) {
+                    final user = ref.watch(currentUserProvider).value;
+                    if (user == null) return const SizedBox.shrink();
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 24),
+                      child: Column(
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text('DAILY TOTAL', style: GoogleFonts.outfit(fontSize: 10, letterSpacing: 2, color: Colors.white38, fontWeight: FontWeight.bold)),
+                                  Text('$_dailyTotal', style: GoogleFonts.outfit(fontSize: 24, fontWeight: FontWeight.bold, color: AppColors.secondary)),
+                                ],
+                              ),
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.end,
+                                children: [
+                                  Text('OVERALL PROGRESS', style: GoogleFonts.outfit(fontSize: 10, letterSpacing: 2, color: Colors.white38, fontWeight: FontWeight.bold)),
+                                  Text('${(user.overallProgress * 100).toInt()}%', style: GoogleFonts.outfit(fontSize: 24, fontWeight: FontWeight.bold, color: AppColors.accent)),
+                                ],
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(4),
+                            child: LinearProgressIndicator(
+                              value: user.overallProgress,
+                              backgroundColor: Colors.white.withValues(alpha: 0.05),
+                              valueColor: AlwaysStoppedAnimation(AppColors.accent),
+                              minHeight: 4,
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                ),
+
+              const SizedBox(height: 24),
+
+              // Set Alarm Button
+              TextButton.icon(
+                onPressed: _showAlarmPicker,
+                icon: Icon(Icons.alarm_add_rounded, color: AppColors.secondary),
+                label: Text('Set Daily Reminder', style: GoogleFonts.outfit(color: AppColors.secondary, fontWeight: FontWeight.bold)),
+                style: TextButton.styleFrom(
+                  backgroundColor: AppColors.secondary.withValues(alpha: 0.1),
+                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                 ),
               ),
 
@@ -214,6 +315,7 @@ class _JapCounterScreenState extends ConsumerState<JapCounterScreen>
               // Progress ring and counter
               Center(
                 child: GestureDetector(
+                  behavior: HitTestBehavior.opaque,
                   onTap: _isEditing ? null : _incrementCount,
                   child: ScaleTransition(
                     scale: _pulseAnimation,
@@ -231,7 +333,7 @@ class _JapCounterScreenState extends ConsumerState<JapCounterScreen>
                               shape: BoxShape.circle,
                               boxShadow: [
                                 BoxShadow(
-                                  color: AppColors.secondary.withOpacity(0.15),
+                                  color: AppColors.secondary.withValues(alpha: 0.15),
                                   blurRadius: 40,
                                   spreadRadius: 10,
                                 ),
@@ -247,7 +349,7 @@ class _JapCounterScreenState extends ConsumerState<JapCounterScreen>
                               strokeWidth: 14,
                               strokeCap: StrokeCap.round,
                               valueColor: AlwaysStoppedAnimation(AppColors.secondary),
-                              backgroundColor: Colors.white.withOpacity(0.05),
+                              backgroundColor: Colors.white.withValues(alpha: 0.05),
                             ),
                           ),
                           // Counter Text / Editor
@@ -290,7 +392,7 @@ class _JapCounterScreenState extends ConsumerState<JapCounterScreen>
                                 style: GoogleFonts.outfit(
                                   fontSize: 14,
                                   fontWeight: FontWeight.w600,
-                                  color: AppColors.secondary.withOpacity(0.8),
+                                  color: AppColors.secondary.withValues(alpha: 0.8),
                                   letterSpacing: 2,
                                 ),
                               ),

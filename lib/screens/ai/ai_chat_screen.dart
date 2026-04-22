@@ -18,6 +18,7 @@ class _AIChatScreenState extends State<AIChatScreen> {
       'isUser': false,
     },
   ];
+  bool _isTyping = false;
 
   void _handleSend() {
     if (_controller.text.trim().isEmpty) return;
@@ -27,6 +28,7 @@ class _AIChatScreenState extends State<AIChatScreen> {
         'text': _controller.text,
         'isUser': true,
       });
+      _isTyping = true;
     });
 
     final userQuery = _controller.text.toLowerCase();
@@ -50,6 +52,7 @@ class _AIChatScreenState extends State<AIChatScreen> {
 
       if (mounted) {
         setState(() {
+          _isTyping = false;
           _messages.add({
             'text': response,
             'isUser': false,
@@ -71,7 +74,7 @@ class _AIChatScreenState extends State<AIChatScreen> {
           ],
         ),
         centerTitle: true,
-        backgroundColor: AppColors.primaryDark.withOpacity(0.5),
+        backgroundColor: AppColors.primaryDark.withValues(alpha: 0.5),
         flexibleSpace: ClipRect(
           child: BackdropFilter(
             filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
@@ -94,6 +97,14 @@ class _AIChatScreenState extends State<AIChatScreen> {
               },
             ),
           ),
+          if (_isTyping)
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: Text('Sarthi is reflecting...', style: GoogleFonts.outfit(fontSize: 12, color: AppColors.gold.withValues(alpha: 0.7), fontStyle: FontStyle.italic)),
+              ),
+            ),
           _buildInputArea(),
         ],
       ),
@@ -107,7 +118,7 @@ class _AIChatScreenState extends State<AIChatScreen> {
         color: AppColors.surfaceDark,
         borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
         boxShadow: [
-          BoxShadow(color: Colors.black.withOpacity(0.3), blurRadius: 20, offset: const Offset(0, -5)),
+          BoxShadow(color: Colors.black.withValues(alpha: 0.3), blurRadius: 20, offset: const Offset(0, -5)),
         ],
       ),
       child: SafeArea(
@@ -117,9 +128,9 @@ class _AIChatScreenState extends State<AIChatScreen> {
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.05),
+                  color: Colors.white.withValues(alpha: 0.05),
                   borderRadius: BorderRadius.circular(24),
-                  border: Border.all(color: Colors.white.withOpacity(0.1)),
+                  border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
                 ),
                 child: TextField(
                   controller: _controller,
@@ -142,7 +153,7 @@ class _AIChatScreenState extends State<AIChatScreen> {
                 gradient: AppColors.gradientScore,
                 shape: BoxShape.circle,
                 boxShadow: [
-                  BoxShadow(color: AppColors.gold.withOpacity(0.3), blurRadius: 10, spreadRadius: 2),
+                  BoxShadow(color: AppColors.gold.withValues(alpha: 0.3), blurRadius: 10, spreadRadius: 2),
                 ],
               ),
               child: IconButton(
@@ -175,7 +186,7 @@ class _ChatBubble extends StatelessWidget {
           gradient: isUser 
             ? AppColors.gradientPurple 
             : LinearGradient(
-                colors: [Colors.white.withOpacity(0.1), Colors.white.withOpacity(0.05)],
+                colors: [Colors.white.withValues(alpha: 0.1), Colors.white.withValues(alpha: 0.05)],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
@@ -185,10 +196,10 @@ class _ChatBubble extends StatelessWidget {
             bottomLeft: Radius.circular(isUser ? 24 : 4),
             bottomRight: Radius.circular(isUser ? 4 : 24),
           ),
-          border: Border.all(color: Colors.white.withOpacity(isUser ? 0.2 : 0.05)),
+          border: Border.all(color: Colors.white.withValues(alpha: isUser ? 0.2 : 0.05)),
           boxShadow: [
             if (isUser)
-              BoxShadow(color: AppColors.primary.withOpacity(0.2), blurRadius: 10, offset: const Offset(0, 4)),
+              BoxShadow(color: AppColors.primary.withValues(alpha: 0.2), blurRadius: 10, offset: const Offset(0, 4)),
           ],
         ),
         child: Column(
@@ -202,7 +213,7 @@ class _ChatBubble extends StatelessWidget {
             Text(
               text,
               style: GoogleFonts.outfit(
-                color: Colors.white.withOpacity(0.95),
+                color: Colors.white.withValues(alpha: 0.95),
                 fontSize: 15,
                 height: 1.4,
               ),
